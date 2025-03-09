@@ -8,12 +8,23 @@ const AddUser = () => {
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [address, setAddress] = useState("");
+    const [error, setError] = useState("");  // State for error messages
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!name || !email || !phone || !address) return;
+        setError("");
+
+        if (!name || !email || !phone || !address) {
+            setError("All fields are required.");
+            return;
+        }
+
+        if (phone.length !== 10) {
+            setError("Phone number must be exactly 10 digits.");
+            return;
+        }
 
         dispatch(addUser({ id: Date.now(), name, email, phone, address }));
         navigate("/");
@@ -22,6 +33,7 @@ const AddUser = () => {
     return (
         <div className="p-6 bg-white rounded-lg shadow-md w-full max-w-md mx-auto">
             <h2 className="text-lg font-bold mb-4">Add User</h2>
+            {error && <p className="text-red-500">{error}</p>}  {/* Display error if exists */}
             <form onSubmit={handleSubmit} className="space-y-3">
                 <input
                     className="w-full p-2 border rounded-md"
@@ -42,12 +54,16 @@ const AddUser = () => {
                     type="number"
                     placeholder="Phone"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    maxLength="10"  // Restrict length in input
+                    onChange={(e) => {
+                        const value = e.target.value.slice(0, 10); // Allow only 10 digits
+                        setPhone(value);
+                    }}
                 />
                 <input
                     className="w-full p-2 border rounded-md"
                     type="text"
-                    placeholder="address"
+                    placeholder="Address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                 />

@@ -22,7 +22,7 @@ const UserList = () => {
           onChange={(e) => setSearch(e.target.value)}
           className="border border-gray-300 rounded-md p-2 w-full sm:w-2/3 md:w-1/2"
         />
-        <Link to="/add" className="bg-gray-300 text-black font-bold tracking-wide px-6 py-2 rounded-md hover:bg-blue-500 transition">CREATE</Link>
+        <Link to="/add" className="bg-gray-300 text-black font-bold tracking-wide px-6 py-2 rounded-md ">CREATE</Link>
       </div>
       <div className="hidden md:block">
         <table className="w-full border-collapse border border-gray-300">
