@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
-import { Eye } from 'lucide-react';
+import { Eye, Lock } from 'lucide-react';
 
-const WaveformTrack = ({ 
-  videoTime = 0, 
-  videoDuration = 0, 
+const WaveformTrack = ({
+  videoTime = 0,
+  videoDuration = 0,
   videoUrl = null,
-  isPlaying = false 
+  isPlaying = false
 }) => {
   const waveformRef = useRef(null);
   const wavesurferRef = useRef(null);
@@ -32,15 +32,11 @@ const WaveformTrack = ({
         const wsRegions = RegionsPlugin.create();
         regionsRef.current = wsRegions;
 
-        wavesurfer = WaveSurfer.create({
+        const wavesurfer = WaveSurfer.create({
           container: waveformRef.current,
-          waveColor: [
-            'rgba(187,68,238,1)',
-            'rgba(68,136,238,1)',
-            'rgba(68,221,170,1)',
-            'rgba(136,238,68,1)'
-          ],
-          progressColor: 'rgba(255, 255, 255, 0.5)',
+          waveColor: {
+            gradient: ['rgba(187,68,238,1)', 'rgba(68,136,238,1)', 'rgba(68,221,170,1)', 'rgba(136,238,68,1)']
+          },
           cursorColor: '#57BAB6',
           cursorWidth: 4,
           barWidth: 2,
@@ -58,10 +54,11 @@ const WaveformTrack = ({
           media: videoElement
         });
 
+
         wavesurfer.on('ready', () => {
           setIsReady(true);
           setDuration(formatTime(videoDuration));
-          
+
           // Initial sync with video time
           if (videoTime > 0) {
             wavesurfer.setTime(videoTime);
@@ -126,16 +123,23 @@ const WaveformTrack = ({
           }
         `}
       </style>
-      <div className="flex h-24 border-b border-gray-700 bg-gray-900">
-        <div className="track-label flex items-center justify-between bg-gray-800 w-32 px-4">
-          <div className="flex items-center gap-2">
-            <Eye size={16} className="text-gray-400" />
-            <span className="text-white text-sm">Track 1</span>
+      <div className="flex h-24 border-b border-gray-200">
+        <div className="track-label flex items-center w-32 px-4 bg-white border-r border-gray-200">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-3">
+              <span className="text-gray-700 text-sm font-bold">Track 1</span>
+            </div>
+            <div className='gap-10 flex flex-col'>
+            <Eye className="text-black w-6 h-6" />
+
+            <Lock size={16} className="text-black w-6 h-6" />
+            </div>
+
           </div>
         </div>
-        <div className="flex-1 relative" id="waveform">
+        <div className="flex-1 relative bg-black" id="waveform">
           <div ref={waveformRef} className="h-full" />
-          <div className="absolute bottom-2 right-2 bg-gray-800 text-white px-2 py-1 text-xs rounded">
+          <div className="absolute bottom-2 right-2 bg-gray-700 text-white px-2 py-1 text-xs rounded">
             {currentTime} / {formatTime(videoDuration)}
           </div>
         </div>
