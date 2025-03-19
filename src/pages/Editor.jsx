@@ -5,7 +5,7 @@ import VideoControls from '../components/VideoControls';
 import PropertiesPanel from '../components/PropertiesPanel';
 import { ArrowLeft, Maximize2, Play, ZoomIn, ZoomOut, SkipBack, SkipForward } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import video from "../assets/video.mp4";  // Import from assets folder
+import video from "../assets/video.mp4";
 
 const Editor = () => {
   const [isPlaying, setIsPlaying] = useState(false);
