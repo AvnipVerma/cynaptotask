@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import { Eye, Lock } from 'lucide-react';
 
 const WaveformTrack = ({
@@ -10,6 +11,7 @@ const WaveformTrack = ({
 }) => {
   const waveformRef = useRef(null);
   const wavesurferRef = useRef(null);
+  const regionsRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
@@ -24,45 +26,44 @@ const WaveformTrack = ({
           console.error('Video element not found');
           return;
         }
-
-        const wavesurfer = WaveSurfer.create({
+    
+        const wsRegions = RegionsPlugin.create();
+        regionsRef.current = wsRegions;
+    
+        wavesurferRef.current = WaveSurfer.create({
           container: waveformRef.current,
-          waveColor: {
-            gradient: ['rgba(187,68,238,1)', 'rgba(68,136,238,1)', 'rgba(68,221,170,1)', 'rgba(136,238,68,1)']
-          },
-          cursorColor: '#57BAB6',
-          cursorWidth: 4,
-          barWidth: 2,
+          waveColor: '#4A90E2',  // Change to a simple color
+          progressColor: '#57BAB6',  
+          cursorColor: '#fff',
+          cursorWidth: 2,
+          barWidth: 3,
           barRadius: 2,
           barGap: 1,
-          height: 80,
+          height: 100, // Increase height for visibility
           normalize: true,
-          fillParent: true,
-          minPxPerSec: 100,
           splitChannels: false,
           interact: true,
-          hideScrollbar: false,
+          hideScrollbar: true,
           autoCenter: true,
-          media: videoElement
+          plugins: [wsRegions],
         });
-
-        wavesurfer.on('ready', () => {
+    
+        wavesurferRef.current.load(videoUrl); // Load audio from the video
+    
+        wavesurferRef.current.on('ready', () => {
           setIsReady(true);
-          setDuration(formatTime(videoDuration));
-          if (videoTime > 0) {
-            wavesurfer.setTime(videoTime);
-          }
+          setDuration(formatTime(wavesurferRef.current.getDuration()));
         });
-
-        wavesurfer.on('audioprocess', () => {
-          if (wavesurfer.isDestroyed) return;
-          setCurrentTime(formatTime(videoTime));
+    
+        wavesurferRef.current.on('audioprocess', () => {
+          if (wavesurferRef.current.isDestroyed) return;
+          setCurrentTime(formatTime(wavesurferRef.current.getCurrentTime()));
         });
-
-        wavesurferRef.current = wavesurfer;
       }
     };
+    
 
+    // Wait for a short moment to ensure video element is mounted
     setTimeout(() => {
       initializeWaveSurfer().catch(console.error);
     }, 100);
@@ -71,6 +72,9 @@ const WaveformTrack = ({
       if (wavesurferRef.current) {
         wavesurferRef.current.destroy();
         wavesurferRef.current = null;
+      }
+      if (regionsRef.current) {
+        regionsRef.current = null;
       }
     };
   }, []);
