@@ -1,25 +1,23 @@
-import { BrowserRouter as Router, Route, Routes, Link } from "react-router-dom";
-import { Provider } from "react-redux";
-import { store } from "./redux/store";
-import UserList from "./components/UserList";
-import AddUser from "./components/AddUser";
-import UserDetails from "./components/UserDetails";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+import Editor from "./pages/Editor";
+import NotFound from "./pages/NotFound";
 
-const App = () => {
-  return (
-    <Provider store={store}>
-      <Router>
-        <div className="min-h-screen bg-gray-100 p-6">
+// Remove UI components that are causing errors since they might not exist
+const queryClient = new QueryClient();
 
-          <Routes>
-            <Route path="/" element={<UserList />} />
-            <Route path="/add" element={<AddUser />} />
-            <Route path="/user/:id" element={<UserDetails />} />
-          </Routes>
-        </div>
-      </Router>
-    </Provider>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/editor" element={<Editor />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </QueryClientProvider>
+);
 
 export default App;

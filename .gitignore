@@ -21,3 +21,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# media files
+/src/assets/*.mp4
+/public/*.mp4
