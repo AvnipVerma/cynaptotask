@@ -14,13 +14,11 @@ const Index = () => {
         <Header />
         
         <main className="flex-1 overflow-y-auto p-6">
-          {/* Project Buttons */}
           <div className="flex gap-4 mb-8">
             <ProjectButton icon="create" title="Create Project" to="/editor" />
             <ProjectButton icon="record" title="Record Video" />
           </div>
           
-          {/* Recent Videos Section */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-medium">Recent videos</h2>

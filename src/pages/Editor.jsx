@@ -10,10 +10,9 @@ import video from "../assets/video.mp4";
 const Editor = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(120); // 2 minutes sample duration
+  const [duration, setDuration] = useState(120); 
   const videoRef = useRef(null);
   
-  // Use the imported video directly
   const videoUrl = video;
   
   const handlePlay = () => {
@@ -66,7 +65,6 @@ const Editor = () => {
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      {/* Top Section */}
       <div className="flex items-center">
         <Link to="/" className="p-4">
           <ArrowLeft />
@@ -77,9 +75,7 @@ const Editor = () => {
         </button>
       </div>
       
-      {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Assets */}
         <div className="w-72 border-r border-gray-200 p-4 overflow-y-auto">
           <h2 className="text-lg font-medium mb-4">Assets</h2>
           <div className="grid grid-cols-2 gap-2 mb-4">
@@ -107,9 +103,7 @@ const Editor = () => {
           </div>
         </div>
         
-        {/* Center Panel - Video Preview and Timeline */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Video Preview */}
           <div className="flex-1 bg-black flex items-center justify-center p-4">
             <video 
               ref={videoRef}
@@ -120,7 +114,6 @@ const Editor = () => {
             />
           </div>
           
-          {/* Video Controls */}
           <div className="p-2 border-t border-b border-gray-200">
             <VideoControls 
               isPlaying={isPlaying}
@@ -132,7 +125,6 @@ const Editor = () => {
             />
           </div>
           
-          {/* Timeline/Tracks */}
           <div className="h-64 overflow-y-auto">
             <div className="flex">
               <div className="w-full">
@@ -147,7 +139,6 @@ const Editor = () => {
           </div>
         </div>
         
-        {/* Right Panel - Properties */}
         <PropertiesPanel />
       </div>
     </div>
