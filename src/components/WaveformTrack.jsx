@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 import { Eye, Lock } from 'lucide-react';
 
 const WaveformTrack = ({
@@ -11,7 +10,6 @@ const WaveformTrack = ({
 }) => {
   const waveformRef = useRef(null);
   const wavesurferRef = useRef(null);
-  const regionsRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [currentTime, setCurrentTime] = useState('0:00');
   const [duration, setDuration] = useState('0:00');
@@ -21,16 +19,11 @@ const WaveformTrack = ({
 
     const initializeWaveSurfer = async () => {
       if (waveformRef.current && !wavesurferRef.current) {
-        // Wait for video element to be available
         const videoElement = document.querySelector('video');
         if (!videoElement) {
           console.error('Video element not found');
           return;
         }
-
-        // Create a Regions plugin instance
-        const wsRegions = RegionsPlugin.create();
-        regionsRef.current = wsRegions;
 
         const wavesurfer = WaveSurfer.create({
           container: waveformRef.current,
@@ -50,16 +43,12 @@ const WaveformTrack = ({
           interact: true,
           hideScrollbar: false,
           autoCenter: true,
-          plugins: [wsRegions],
           media: videoElement
         });
-
 
         wavesurfer.on('ready', () => {
           setIsReady(true);
           setDuration(formatTime(videoDuration));
-
-          // Initial sync with video time
           if (videoTime > 0) {
             wavesurfer.setTime(videoTime);
           }
@@ -74,7 +63,6 @@ const WaveformTrack = ({
       }
     };
 
-    // Wait for a short moment to ensure video element is mounted
     setTimeout(() => {
       initializeWaveSurfer().catch(console.error);
     }, 100);
@@ -83,9 +71,6 @@ const WaveformTrack = ({
       if (wavesurferRef.current) {
         wavesurferRef.current.destroy();
         wavesurferRef.current = null;
-      }
-      if (regionsRef.current) {
-        regionsRef.current = null;
       }
     };
   }, []);
