@@ -119,13 +119,15 @@ const Editor = () => {
           </div>
         </div>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 bg-gray-100 flex items-center justify-center p-4">
+          <div className="flex-1 bg-gray-100 flex items-center justify-center p-4 max-h-[60vh]">
             <video
               ref={videoRef}
               src={videoUrl}
-              className="max-h-full max-w-full"
+              className="max-h-full max-w-full object-contain"
               onPlay={() => setIsPlaying(true)}
               onPause={() => setIsPlaying(false)}
+              preload="auto"
+              playsInline
             />
           </div>
 
@@ -140,7 +142,7 @@ const Editor = () => {
             />
           </div>
 
-          <div className="h-64 overflow-y-auto bg-white">
+          <div className="h-48 overflow-y-auto bg-white">
             <div className="flex">
               <div className="w-full">
                 <WaveformTrack
