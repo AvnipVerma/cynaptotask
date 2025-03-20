@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import Timeline from 'wavesurfer.js/dist/plugins/timeline.js';
-import Regions from 'wavesurfer.js/dist/plugins/regions.js'; 
+import TimelinePlugin from 'wavesurfer.js/dist/plugin/timeline/index.js';
+import RegionsPlugin from 'wavesurfer.js/dist/plugin/regions/index.js';
 import { Eye, Lock } from 'lucide-react';
 
 const regionData = [
@@ -76,7 +76,7 @@ const WaveformTrack = ({
       const videoElement = document.querySelector('video');
       if (!videoElement) return;
 
-      const timeline = Timeline.create({
+      const timeline = TimelinePlugin.create({
         container: timelineRef.current,
         height: 15,
         timeInterval: 0.1,
@@ -88,7 +88,7 @@ const WaveformTrack = ({
         secondaryFontColor: '#fff'
       });
 
-      const regions = Regions.create();
+      const regions = RegionsPlugin.create();
       regionsPluginRef.current = regions;
 
       const wavesurfer = WaveSurfer.create({
