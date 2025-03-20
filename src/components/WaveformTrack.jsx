@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
-import TimelinePlugin from 'wavesurfer.js/dist/plugin/timeline/index.js';
-import RegionsPlugin from 'wavesurfer.js/dist/plugin/regions/index.js';
+import TimelinePlugin from 'wavesurfer.js/plugins/timeline';
+import RegionsPlugin from 'wavesurfer.js/plugins/regions';
 import { Eye, Lock } from 'lucide-react';
 
 const regionData = [
