@@ -864,7 +864,7 @@ const createRegion = (regionsPlugin, start, end, color, text) => {
     textDiv.textContent = text;
     region.element.appendChild(textDiv);
   }
-
+  
   return region;
 };
 
