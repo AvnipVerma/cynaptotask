@@ -32,7 +32,7 @@ const VideoControls = ({
 
   return (
     <div className="flex flex-col ">
-      <div className="flex items-center w-full justify-center gap-4 py-2">
+      <div className="flex items-center w-full justify-center gap-4 h-12 py-2">
         <button className="p-1 rounded-full hover:bg-gray-100">
           <Scissors size={18} />
         </button>
