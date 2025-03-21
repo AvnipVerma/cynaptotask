@@ -171,6 +171,7 @@ const RegionModal = ({ isOpen, onClose, onSave }) => {
 
           .color-preview label {
             font-size: 12px;
+
             color: #6b7280;
           }
 
@@ -279,16 +280,13 @@ const WaveformTrack = ({
   isPlaying = false
 }) => {
   const waveformRef = useRef(null);
-  const timelineRef = useRef(null);
   const wavesurferRef = useRef(null);
   const regionsPluginRef = useRef(null);
   const [currentTime, setCurrentTime] = useState('0:00');
-  const [isInitialModalOpen, setIsInitialModalOpen] = useState(false);
-  const [isTimeSelectionModalOpen, setIsTimeSelectionModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [timeSelectionType, setTimeSelectionType] = useState(null);
   const [pendingRegionData, setPendingRegionData] = useState(null);
-  const [startPoint, setStartPoint] = useState(null);
+  const [isSettingEndTime, setIsSettingEndTime] = useState(false);
   const [regions, setRegions] = useState([]);
   const activeRegionRef = useRef(null);
   const clickHandlerRef = useRef(null);
@@ -297,25 +295,13 @@ const WaveformTrack = ({
     if (waveformRef.current) {
       waveformRef.current.innerHTML = '';
     }
-    if (timelineRef.current) {
-      timelineRef.current.innerHTML = '';
-    }
+   
 
     const initializeWaveSurfer = async () => {
       const videoElement = document.querySelector('video');
       if (!videoElement) return;
 
-      const timeline = TimelinePlugin.create({
-        container: timelineRef.current,
-        height: 15,
-        timeInterval: 0.1,
-        primaryLabelInterval: 1,
-        secondaryLabelInterval: 5,
-        primaryColor: '#fff',
-        secondaryColor: '#666',
-        primaryFontColor: '#fff',
-        secondaryFontColor: '#fff'
-      });
+    
 
       const regions = RegionsPlugin.create({
         dragSelection: false,
@@ -351,13 +337,15 @@ const WaveformTrack = ({
         backgroundColor: '#1f2937',
         plugins: [
           TimelinePlugin.create({
-            container: '#timeline',
             height: 20,
-            fontSize: 11,
-            primaryColor: '#ffffff',
-            secondaryColor: '#ffffff',
-            primaryFontColor: '#ffffff',
-            secondaryFontColor: '#ffffff'
+            insertPosition: 'beforebegin',
+            timeInterval: 0.2,
+            primaryLabelInterval: 1,
+            secondaryLabelInterval: 1,
+            style: {
+              fontSize: '12px',
+              color: 'grey',
+            },
           }),
           regions
         ],
@@ -426,16 +414,12 @@ const WaveformTrack = ({
         `;
         wavesurfer.getWrapper().appendChild(style);
 
-        // // Set up region creation events
-        // regions.enableDragSelection({
-        //   color: 'rgba(46, 79, 210, 0.3)'
-        // });
-
+     
         // Handle region creation
         regions.on('region-created', (region) => {
-          if (isInitialModalOpen) {
+          if (isModalOpen) {
             setPendingRegionData(region);
-            setIsInitialModalOpen(true);
+            setIsModalOpen(true);
           }
         });
       });
@@ -479,65 +463,78 @@ const WaveformTrack = ({
   };
 
   const handleCreateRegion = () => {
-    setIsInitialModalOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleInitialModalSave = (data) => {
-    setIsInitialModalOpen(false);
-    setPendingRegionData(data);
-    setTimeSelectionType('start');
-    setIsTimeSelectionModalOpen(true);
+  const handleModalSave = (data) => {
+    setIsModalOpen(false);
+    // Store the current time as start time along with color and text
+    setPendingRegionData({
+      ...data,
+      startTime: wavesurferRef.current.getCurrentTime()
+    });
+    setIsSettingEndTime(true);
+    document.body.style.cursor = 'crosshair';
   };
 
   const handleWaveformClick = (e) => {
-    if (!timeSelectionType || !pendingRegionData || !wavesurferRef.current) return;
+    if (!isSettingEndTime || !pendingRegionData || !wavesurferRef.current) return;
 
     const rect = waveformRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const duration = wavesurferRef.current.getDuration();
-    const time = (x / rect.width) * duration;
+    const endTime = (x / rect.width) * duration;
+    const clickTime = wavesurferRef.current.getDuration() * (x / rect.width);
 
-    if (timeSelectionType === 'start') {
-      setStartPoint(time);
-      setTimeSelectionType('end');
-    } else {
-      const start = Math.min(startPoint, time);
-      const end = Math.max(startPoint, time);
+    try {
+      const region = regionsPluginRef.current.addRegion({
+        start: Math.min(pendingRegionData.startTime, clickTime),
+        end: Math.max(pendingRegionData.startTime, clickTime),
+        color: `rgba(${parseInt(pendingRegionData.color.slice(1, 3), 16)}, 
+                ${parseInt(pendingRegionData.color.slice(3, 5), 16)}, 
+                ${parseInt(pendingRegionData.color.slice(5, 7), 16)}, 
+                ${pendingRegionData.opacity})`,
+        drag: false,
+        resize: true,
+        id: `region-${Date.now()}`
+      });
 
-      createRegion(
-        regionsPluginRef.current,
-        start,
-        end,
-        `rgba(${parseInt(pendingRegionData.color.slice(1, 3), 16)}, 
-              ${parseInt(pendingRegionData.color.slice(3, 5), 16)}, 
-              ${parseInt(pendingRegionData.color.slice(5, 7), 16)}, 
-              ${pendingRegionData.opacity})`,
-        pendingRegionData.text
-      );
+      if (region && region.element) {
+        const textDiv = document.createElement('div');
+        textDiv.className = 'region-text';
+        textDiv.textContent = pendingRegionData.text;
+        region.element.appendChild(textDiv);
+      }
 
-      setIsTimeSelectionModalOpen(false);
-      setIsSuccessModalOpen(true);
+      // Reset states after region creation
       resetRegionCreation();
+      setIsSuccessModalOpen(true);
+    } catch (error) {
+      console.error('Error creating region:', error);
     }
   };
 
   const resetRegionCreation = () => {
-    setTimeSelectionType(null);
-    setStartPoint(null);
     setPendingRegionData(null);
+    setIsSettingEndTime(false);
     document.body.style.cursor = 'default';
+    waveformRef.current?.removeEventListener('click', handleWaveformClick);
   };
 
+  // Add/remove click listener when setting end time
   useEffect(() => {
-    const waveformElement = waveformRef.current;
-    if (waveformElement && timeSelectionType) {
-      waveformElement.addEventListener('click', handleWaveformClick);
-      return () => waveformElement.removeEventListener('click', handleWaveformClick);
+    if (isSettingEndTime && waveformRef.current) {
+      waveformRef.current.addEventListener('click', handleWaveformClick);
     }
-  }, [timeSelectionType, startPoint]);
+    return () => {
+      if (waveformRef.current) {
+        waveformRef.current.removeEventListener('click', handleWaveformClick);
+      }
+    };
+  }, [isSettingEndTime, pendingRegionData]);
 
   const handleRegionClick = (region) => {
-    setIsInitialModalOpen(true);
+    setIsModalOpen(true);
     setPendingRegionData({
       id: region.id,
       text: region.element.getAttribute('data-content'),
@@ -616,7 +613,7 @@ const WaveformTrack = ({
   // Prevent region creation when clicking waveform without being in creation mode
   useEffect(() => {
     const preventRegionCreation = (e) => {
-      if (!isInitialModalOpen) {
+      if (!isModalOpen) {
         e.stopPropagation();
       }
     };
@@ -633,7 +630,7 @@ const WaveformTrack = ({
         waveformElement.removeEventListener('touchstart', preventRegionCreation);
       }
     };
-  }, [isInitialModalOpen]);
+  }, [isModalOpen]);
 
   // Add this function to handle region updates
   const updateRegion = (region, start, end) => {
@@ -671,12 +668,12 @@ const WaveformTrack = ({
   }, []);
 
   return (
-    <div className="waveform-track-container ">
+    <div className="waveform-track-container">
       <div className="button-container">
         <button
           className="action-btn create-btn"
           onClick={handleCreateRegion}
-          disabled={timeSelectionType !== null}
+          disabled={isSettingEndTime}
         >
           Add Region
         </button>
@@ -688,30 +685,18 @@ const WaveformTrack = ({
         </button>
       </div>
 
-      <div className="waveform-wrapper">
-        <div 
-          ref={waveformRef} 
-          className={`waveform-container ${timeSelectionType ? 'selecting-time' : ''}`}
-        ></div>
-        <div id="timeline" className="timeline"></div>
-      </div>
+      <div 
+        ref={waveformRef} 
+        className={`waveform-container ${isSettingEndTime ? 'setting-end-time' : ''}`}
+      ></div>
 
       <RegionModal
-        isOpen={isInitialModalOpen}
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsInitialModalOpen(false);
+          setIsModalOpen(false);
           resetRegionCreation();
         }}
-        onSave={handleInitialModalSave}
-      />
-
-      <TimeSelectionModal
-        isOpen={isTimeSelectionModalOpen}
-        type={timeSelectionType}
-        onClose={() => {
-          setIsTimeSelectionModalOpen(false);
-          resetRegionCreation();
-        }}
+        onSave={handleModalSave}
       />
 
       <SuccessModal
@@ -719,28 +704,27 @@ const WaveformTrack = ({
         onClose={() => setIsSuccessModalOpen(false)}
       />
 
-      {/* Visual feedback overlay */}
-      {isInitialModalOpen && (
-        <div 
-          className="fixed top-0 left-0 w-full h-full pointer-events-none"
-          style={{ 
-            backgroundColor: 'rgba(0,0,0,0.1)',
-            zIndex: 1000 
-          }}
-        >
-          <div className="text-center mt-4 text-lg font-semibold text-blue-600">
-            {timeSelectionType === 'start' ? 'Click on the waveform to set start point' : 'Click on the waveform to set end point'}
-          </div>
-        </div>
-      )}
-
       <style jsx>{`
         .waveform-track-container {
           position: relative;
           width: 100%;
-          padding: 20px;
+          padding: 10px;
           background: #111827;
           border-radius: 8px;
+          margin: 10px 0;
+        }
+
+        .waveform-container {
+          background: #1f2937;
+            border-radius: 4px;
+          padding: 10px;
+          border: 1px solid #374151;
+          transition: all 0.2s;
+        }
+
+        .waveform-container.setting-end-time {
+          cursor: crosshair;
+          box-shadow: 0 0 0 2px #3b82f6;
         }
 
         .button-container {
@@ -782,35 +766,6 @@ const WaveformTrack = ({
           background: #059669;
         }
 
-        .waveform-wrapper {
-          display: flex;
-          flex-direction: column-reverse; // Reverse the order to put timeline on top
-          background: #1f2937;
-          border-radius: 4px;
-          border: 1px solid #374151;
-        }
-
-        .timeline {
-          height: 30px;
-          background: #1f2937;
-          border-radius: 4px 4px 0 0;
-          border-bottom: 1px solid #374151;
-        }
-
-        .waveform-container {
-          height: 80px;
-          background: #1f2937;
-          border-radius: 0 0 4px 4px;
-          position: relative;
-          padding: 10px;
-          margin-bottom: 20px; /* Add space for region labels */
-        }
-
-        .waveform-container.selecting-time {
-          cursor: crosshair;
-          box-shadow: 0 0 0 2px #3b82f6;
-        }
-
         /* Region styles */
         :global(.wavesurfer-region) {
           border-radius: 2px !important;
@@ -819,8 +774,8 @@ const WaveformTrack = ({
         }
 
         :global(.wavesurfer-region:hover) {
-          opacity: 0.8;
-        }
+            opacity: 0.8;
+          }
 
         :global(.wavesurfer-region::before),
         :global(.wavesurfer-region::after) {
@@ -890,11 +845,10 @@ const WaveformTrack = ({
           font-weight: 500; // Make text slightly bolder for better visibility
         }
       `}</style>
-    </div>
+      </div>
   );
 };
 
-// Add this helper function to your component
 const createRegion = (regionsPlugin, start, end, color, text) => {
   const region = regionsPlugin.addRegion({
     start,
